@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Show environment
+        shell: bash
+        run: |
+          python -c "import sys, os; print(sys.version); print('os.name =', os.name)"
+
+      - name: Byte-compile the tool
+        run: python -m py_compile venv_repair.py
+
+      - name: End-to-end test suite
+        run: python -m unittest discover -s tests -v
+
+      - name: CLI smoke test
+        shell: bash
+        run: |
+          set -e
+          python venv_repair.py --version
+
+      - name: A non-venv directory must exit 2
+        shell: bash
+        run: |
+          set +e
+          python venv_repair.py .
+          code=$?
+          echo "exit code: $code"
+          test "$code" -eq 2

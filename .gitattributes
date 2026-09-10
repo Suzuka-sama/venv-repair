@@ -1,0 +1,9 @@
+# Normalize line endings so the repository always stores LF,
+# regardless of the contributor's platform.
+* text=auto eol=lf
+
+# Binary-ish files must never be touched.
+*.exe binary
+*.ico binary
+*.png binary
+*.zip binary
